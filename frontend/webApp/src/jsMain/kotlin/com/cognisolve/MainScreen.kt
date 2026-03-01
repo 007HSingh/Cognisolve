@@ -5,6 +5,7 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.attributes.*
 import com.cognisolve.ui.theme.varVariable
+import com.cognisolve.ui.theme.ThemeState
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.runtime.collectAsState
 import com.cognisolve.viewmodel.CognisolveViewModel
@@ -24,9 +25,11 @@ fun MainScreen(viewModel: CognisolveViewModel = remember { CognisolveViewModel()
             flexDirection(FlexDirection.Column)
             gap(24.px)
             fontFamily("Inter", "Roboto", "sans-serif")
+            minHeight(100.vh)
+            paddingBottom(64.px)
         }
     }) {
-        // App Header
+        // App Header with dark mode toggle
         HeaderSection()
         
         // Input Section
@@ -41,15 +44,19 @@ fun MainScreen(viewModel: CognisolveViewModel = remember { CognisolveViewModel()
         when (val state = explainState) {
             is UiState.Idle -> { /* Show nothing yet */ }
             is UiState.Loading -> LoadingState("Analyzing confusion type...")
-            is UiState.Error -> ErrorState(state.message)
+            is UiState.Error -> ErrorState(state.message) { viewModel.retryLastAction() }
             is UiState.Success -> {
                 val successState = state as UiState.Success<com.cognisolve.models.ExplainResponse>
-                DiagnosisSection(successState.data)
+                AnimatedSection {
+                    DiagnosisSection(successState.data)
+                }
                 
-                ExplanationSection(
-                    response = successState.data,
-                    onRequestPractice = { viewModel.requestPractice() }
-                )
+                AnimatedSection(delay = "0.15s") {
+                    ExplanationSection(
+                        response = successState.data,
+                        onRequestPractice = { viewModel.requestPractice() }
+                    )
+                }
                 
                 // Once practice is requested, show that section
                 val practiceState by viewModel.practiceState.collectAsState<UiState<com.cognisolve.models.PracticeResponse>>()
@@ -57,15 +64,17 @@ fun MainScreen(viewModel: CognisolveViewModel = remember { CognisolveViewModel()
                 when (val pState = practiceState) {
                     is UiState.Idle -> { /* Show nothing */ }
                     is UiState.Loading -> LoadingState("Generating practice questions...")
-                    is UiState.Error -> ErrorState(pState.message)
+                    is UiState.Error -> ErrorState(pState.message) { viewModel.requestPractice() }
                     is UiState.Success -> {
                         val pSuccessState = pState as UiState.Success<com.cognisolve.models.PracticeResponse>
-                        PracticeSection(
-                            response = pSuccessState.data,
-                            onSubmitAnswer = { question, learnerAnswer, correctAnswer ->
-                                viewModel.submitFeedback(question, learnerAnswer, correctAnswer)
-                            }
-                        )
+                        AnimatedSection {
+                            PracticeSection(
+                                response = pSuccessState.data,
+                                onSubmitAnswer = { question, learnerAnswer, correctAnswer ->
+                                    viewModel.submitFeedback(question, learnerAnswer, correctAnswer)
+                                }
+                            )
+                        }
                         
                         val feedbackState by viewModel.feedbackState.collectAsState<UiState<com.cognisolve.models.FeedbackResponse>>()
                         when(val fState = feedbackState) {
@@ -74,7 +83,9 @@ fun MainScreen(viewModel: CognisolveViewModel = remember { CognisolveViewModel()
                             is UiState.Error -> ErrorState(fState.message)
                             is UiState.Success -> {
                                 val fSuccessState = fState as UiState.Success<com.cognisolve.models.FeedbackResponse>
-                                FeedbackSection(fSuccessState.data)
+                                AnimatedSection {
+                                    FeedbackSection(fSuccessState.data)
+                                }
                             }
                         }
                     }
@@ -88,29 +99,71 @@ fun MainScreen(viewModel: CognisolveViewModel = remember { CognisolveViewModel()
 fun HeaderSection() {
     Div({
         style {
-            textAlign("center")
-            marginBottom(16.px)
+            display(DisplayStyle.Flex)
+            justifyContent(JustifyContent.SpaceBetween)
+            alignItems(AlignItems.Center)
+            marginBottom(8.px)
+            property("animation", "fadeIn 0.6s ease-out")
         }
     }) {
-        H1({
+        // Left: Logo + Tagline
+        Div({
             style {
-                color(varVariable("--md-sys-color-primary"))
-                fontSize(36.px)
-                fontWeight("800")
-                margin(0.px, 0.px, 8.px, 0.px)
+                display(DisplayStyle.Flex)
+                flexDirection(FlexDirection.Column)
             }
         }) {
-            Text("Cognisolve")
-        }
-        P({
-            style {
-                color(varVariable("--md-sys-color-on-surface"))
-                fontSize(18.px)
-                margin(0.px)
-                opacity(0.8)
+            H1({
+                style {
+                    color(varVariable("--md-sys-color-primary"))
+                    fontSize(36.px)
+                    fontWeight("800")
+                    margin(0.px, 0.px, 4.px, 0.px)
+                    letterSpacing((-0.5).px)
+                }
+            }) {
+                Text("Cognisolve")
             }
-        }) {
-            Text("Explain like I'm stuck: AI tutor for conceptual confusion")
+            P({
+                style {
+                    color(varVariable("--md-sys-color-on-surface"))
+                    fontSize(16.px)
+                    margin(0.px)
+                    opacity(0.7)
+                }
+            }) {
+                Text("AI tutor for conceptual confusion")
+            }
         }
+
+        // Right: Dark Mode Toggle
+        Button(attrs = {
+            id("dark-mode-toggle")
+            onClick { ThemeState.isDark = !ThemeState.isDark }
+            style {
+                backgroundColor(Color.transparent)
+                border { width = 0.px }
+                cursor("pointer")
+                fontSize(24.px)
+                padding(8.px)
+                borderRadius(50.percent)
+                property("transition", "transform 0.3s ease, background-color 0.2s")
+            }
+            title(if (ThemeState.isDark) "Switch to light mode" else "Switch to dark mode")
+        }) {
+            Text(if (ThemeState.isDark) "☀️" else "🌙")
+        }
+    }
+}
+
+/** Wrapper that applies a fadeInUp animation to content sections */
+@Composable
+fun AnimatedSection(delay: String = "0s", content: @Composable () -> Unit) {
+    Div({
+        style {
+            property("animation", "fadeInUp 0.4s ease-out $delay both")
+        }
+    }) {
+        content()
     }
 }

@@ -59,7 +59,7 @@ fun InputSection(
                 style { 
                     textInputStyle()
                     minHeight(100.px)
-                    fontFamily("monospace")
+                    fontFamily("'JetBrains Mono', 'Fira Code', monospace")
                     property("resize", "vertical")
                 }
             }
@@ -67,11 +67,12 @@ fun InputSection(
 
         // Submit Button
         Button(attrs = {
+            id("submit-button")
             onClick { onSubmit(concept, doubt, codeSnippet.takeIf { it.isNotBlank() }) }
             if (isLoading || concept.isBlank() || doubt.isBlank()) disabled()
             style { primaryButtonStyle(isLoading || concept.isBlank() || doubt.isBlank()) }
         }) {
-            Text(if (isLoading) "Analyzing..." else "Explain it to me")
+            Text(if (isLoading) "Analyzing..." else "Explain it to me →")
         }
     }
 }
@@ -83,16 +84,13 @@ fun AttrsScope<*>.sectionContainerStyle(bgColorVar: String) {
         backgroundColor(varVariable(bgColorVar))
         padding(24.px)
         borderRadius(16.px)
-        border {
-            width = 1.px
-            style = LineStyle.Solid
-            color = varVariable("--md-sys-color-outline")
-        }
+        property("border", "1px solid var(--md-sys-color-outline)")
         display(DisplayStyle.Flex)
         flexDirection(FlexDirection.Column)
         gap(16.px)
-        property("box-shadow", "0 4px 6px -1px rgba(0, 0, 0, 0.1)")
-        property("transition", "background-color 0.3s ease")
+        property("box-shadow", "0 2px 12px -2px rgba(0, 0, 0, 0.08)")
+        property("transition", "background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease")
+        property("backdrop-filter", "blur(8px)")
     }
 }
 
@@ -103,6 +101,7 @@ fun AttrsScope<*>.sectionHeaderStyle() {
         color(varVariable("--md-sys-color-on-surface"))
         fontSize(24.px)
         fontWeight("600")
+        letterSpacing((-0.3).px)
     }
 }
 
@@ -119,25 +118,22 @@ fun AttrsScope<*>.inputGroupStyle() {
 
 fun StyleScope.textInputStyle() {
     width(100.percent)
-    padding(12.px)
+    padding(12.px, 14.px)
     boxSizing("border-box")
-    borderRadius(8.px)
+    borderRadius(10.px)
     backgroundColor(varVariable("--md-sys-color-background"))
     color(varVariable("--md-sys-color-on-surface"))
-    border {
-        width = 1.px
-        style = LineStyle.Solid
-        color = varVariable("--md-sys-color-outline")
-    }
+    property("border", "1.5px solid var(--md-sys-color-outline)")
     fontSize(16.px)
     fontFamily("inherit")
-    // Focus ring outline would go here via CSS classes ideally, simplified for Compose Web
+    property("transition", "border-color 0.2s ease, box-shadow 0.2s ease")
+    property("outline", "none")
 }
 
 fun StyleScope.primaryButtonStyle(isDisabled: Boolean) {
-    padding(12.px, 24.px)
-    borderRadius(8.px)
-    border { width = 0.px }
+    padding(14.px, 28.px)
+    borderRadius(10.px)
+    property("border", "none")
     backgroundColor(varVariable(if (isDisabled) "--md-sys-color-outline" else "--md-sys-color-primary"))
     color(varVariable("--md-sys-color-on-primary"))
     fontSize(16.px)
@@ -145,4 +141,7 @@ fun StyleScope.primaryButtonStyle(isDisabled: Boolean) {
     cursor(if (isDisabled) "not-allowed" else "pointer")
     property("transition", "all 0.2s ease")
     marginTop(8.px)
+    opacity(if (isDisabled) 0.6 else 1.0)
+    property("transform", "scale(1)")
+    letterSpacing(0.3.px)
 }

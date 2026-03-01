@@ -82,7 +82,7 @@ fun getConfusionDescription(type: ConfusionType): String {
 fun LoadingState(message: String) {
     Div({
         style {
-            padding(32.px)
+            padding(40.px)
             textAlign("center")
             color(varVariable("--md-sys-color-primary"))
             fontSize(18.px)
@@ -90,57 +90,73 @@ fun LoadingState(message: String) {
             display(DisplayStyle.Flex)
             flexDirection(FlexDirection.Column)
             alignItems(AlignItems.Center)
-            gap(16.px)
+            gap(20.px)
+            property("animation", "fadeIn 0.3s ease-out")
         }
     }) {
-        // Simple CSS spinner
+        // Spinner
         Div({
             style {
-                width(40.px)
-                height(40.px)
-                border {
-                    width = 4.px
-                    style = LineStyle.Solid
-                    color = varVariable("--md-sys-color-outline")
-                }
-                property("border-top-color", "var(--md-sys-color-primary)")
+                width(44.px)
+                height(44.px)
                 borderRadius(50.percent)
-                property("animation", "spin 1s linear infinite")
+                property("border", "4px solid var(--md-sys-color-outline)")
+                property("border-top-color", "var(--md-sys-color-primary)")
+                property("animation", "spin 0.8s linear infinite")
             }
         })
-        Text(message)
         
-        // Inject animation using raw HTML block
-        Style(LoadingStyleSheet)
-    }
-}
-
-object LoadingStyleSheet : StyleSheet() {
-    init {
-        "@keyframes spin" {
-            "0%" { property("transform", "rotate(0deg)") }
-            "100%" { property("transform", "rotate(360deg)") }
+        // Message with pulse
+        Span({
+            style {
+                property("animation", "pulse 1.5s ease-in-out infinite")
+            }
+        }) {
+            Text(message)
         }
     }
 }
 
 @Composable
-fun ErrorState(message: String) {
+fun ErrorState(message: String, onRetry: (() -> Unit)? = null) {
     Div({
         style {
             padding(24.px)
-            backgroundColor(Color("#FFF0F0")) // Static red for error
+            backgroundColor(Color("#FFF0F0"))
             color(Color("#D32F2F"))
             borderRadius(12.px)
-            border {
-                width = 1.px
-                style = LineStyle.Solid
-                color = Color("#EF5350")
-            }
+            property("border", "1px solid #EF5350")
             fontSize(16.px)
             fontWeight("500")
+            display(DisplayStyle.Flex)
+            alignItems(AlignItems.Center)
+            justifyContent(JustifyContent.SpaceBetween)
+            gap(16.px)
+            property("animation", "fadeIn 0.3s ease-out")
         }
     }) {
-        Text("⚠️ Error: $message")
+        Span {
+            Text("⚠️ Error: $message")
+        }
+        
+        if (onRetry != null) {
+            Button(attrs = {
+                onClick { onRetry() }
+                style {
+                    backgroundColor(Color("#D32F2F"))
+                    color(Color.white)
+                    border { width = 0.px }
+                    padding(8.px, 16.px)
+                    borderRadius(8.px)
+                    cursor("pointer")
+                    fontWeight("600")
+                    fontSize(14.px)
+                    property("transition", "opacity 0.2s")
+                    property("white-space", "nowrap")
+                }
+            }) {
+                Text("Retry")
+            }
+        }
     }
 }

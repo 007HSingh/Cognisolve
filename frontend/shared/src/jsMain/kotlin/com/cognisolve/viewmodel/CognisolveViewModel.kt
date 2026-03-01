@@ -32,16 +32,29 @@ class CognisolveViewModel(
     private val _feedbackState = MutableStateFlow<UiState<FeedbackResponse>>(UiState.Idle)
     val feedbackState: StateFlow<UiState<FeedbackResponse>> = _feedbackState.asStateFlow()
 
-    // Store the last context for practice requests
+    // Store the last context for practice requests and retry
     private var lastConcept: String? = null
+    private var lastDoubt: String? = null
+    private var lastCodeSnippet: String? = null
     private var lastExplanation: String? = null
     private var lastConfusionType: ConfusionType? = null
+
+    fun retryLastAction() {
+        val concept = lastConcept ?: return
+        val doubt = lastDoubt ?: return
+        submitQuestion(concept, doubt, lastCodeSnippet)
+    }
 
     fun submitQuestion(concept: String, doubt: String, codeSnippet: String? = null) {
         if (concept.isBlank() || doubt.isBlank()) {
             _explainState.value = UiState.Error("Concept and doubt cannot be empty")
             return
         }
+
+        // Store for retry
+        lastConcept = concept
+        lastDoubt = doubt
+        lastCodeSnippet = codeSnippet
 
         _explainState.value = UiState.Loading
         _practiceState.value = UiState.Idle

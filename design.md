@@ -1,5 +1,5 @@
 
-# Explain Like I'm Stuck – Design Document
+# Cognisolve – Design Document
 
 ## 1. System Architecture Overview
 The system follows a modular architecture that separates user interaction, AI reasoning, and feedback mechanisms.

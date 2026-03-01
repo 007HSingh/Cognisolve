@@ -1,8 +1,8 @@
 
-# Explain Like I'm Stuck – Requirements Document
+# Cognisolve – Requirements Document
 
 ## 1. Overview
-Explain Like I’m Stuck is an AI-powered learning assistant designed to help learners overcome conceptual confusion by identifying *why* they are stuck and adapting explanations accordingly.
+Cognisolve is an AI-powered learning assistant designed to help learners overcome conceptual confusion by identifying *why* they are stuck and adapting explanations accordingly.
 
 ## 2. Problem Statement
 Learners often struggle not because information is unavailable, but because explanations do not align with their specific type of confusion. Existing AI tutors provide generic explanations and assume learners can precisely articulate their doubts.

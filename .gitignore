@@ -17,3 +17,17 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# ── Kotlin / Gradle ───────────────────────────────
+.gradle/
+build/
+*.class
+.kotlin/
+kotlin-js-store/
+local.properties
+
+# ── Node (Kotlin/JS toolchain) ────────────────────
+node_modules/
+
+# ── Nix ───────────────────────────────────────────
+result

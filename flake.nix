@@ -28,6 +28,9 @@
           curl
 
           nodejs
+
+          jdk21
+          gradle
         ];
         shellHook = ''
           echo "Cognisolve's dev environment!"

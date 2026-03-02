@@ -1,0 +1,23 @@
+# Gradle caches & build outputs
+.gradle/
+build/
+shared/build/
+webApp/build/
+
+# Kotlin compiler cache
+.kotlin/
+
+# Kotlin/JS node_modules & lock store
+kotlin-js-store/
+node_modules/
+
+# IDE & VCS
+.git/
+.gitignore
+.vscode/
+*.iml
+.idea/
+
+# Docker files themselves
+Dockerfile
+.dockerignore

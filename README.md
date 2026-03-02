@@ -1,12 +1,12 @@
-# BrainBoost
+# Cognisolve
 
 **AI for Learning and Developer Productivity**
 
-This repository contains the design and planning documents for *BrainBoost*, an AI‑powered system aimed at enhancing learning and developer productivity.
+This repository contains the design and planning documents for *Cognisolve*, an AI‑powered system aimed at enhancing learning and developer productivity.
 
 ## 🧠 Project Overview
 
-*BrainBoost* is envisioned as a suite of AI tools and features that help learners and developers work smarter — for example:
+*Cognisolve* is envisioned as a suite of AI tools and features that help learners and developers work smarter — for example:
 
 - Intelligent code suggestions and automation workflows
 - Learning assistants that provide insights or resources

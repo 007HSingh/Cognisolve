@@ -10,7 +10,20 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class ApiClient(private val baseUrl: String = "http://32.192.6.18:8000") {
+// Determine base URL at runtime:
+//  - On localhost: call the EC2 backend directly (no HTTPS needed)
+//  - Anywhere else (e.g. Render): route through the Nginx /api/ proxy, which
+//    forwards to EC2 server-side and avoids mixed-content browser errors.
+private fun resolveBaseUrl(): String {
+    val hostname = js("window.location.hostname").toString()
+    return if (hostname == "localhost" || hostname == "127.0.0.1") {
+        "http://32.192.6.18:8000"
+    } else {
+        js("window.location.origin").toString() + "/api"
+    }
+}
+
+class ApiClient(private val baseUrl: String = resolveBaseUrl()) {
     
     private val client = HttpClient {
         install(ContentNegotiation) {

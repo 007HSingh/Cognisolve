@@ -3,9 +3,11 @@ package com.cognisolve.network
 import com.cognisolve.models.*
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -17,21 +19,49 @@ import kotlinx.serialization.json.Json
 private fun resolveBaseUrl(): String {
     val hostname = js("window.location.hostname").toString()
     return if (hostname == "localhost" || hostname == "127.0.0.1") {
-        "http://32.192.6.18:8000"
+        "https://32.192.6.18"
     } else {
         js("window.location.origin").toString() + "/api"
     }
 }
 
+/** Thrown when the server responds with a non-2xx status code. */
+class ApiException(val statusCode: Int, message: String) : Exception(message)
+
 class ApiClient(private val baseUrl: String = resolveBaseUrl()) {
-    
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        isLenient = true
+    }
+
     private val client = HttpClient {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                isLenient = true
-            })
+            json(json)
+        }
+        HttpResponseValidator {
+            validateResponse { response ->
+                if (!response.status.isSuccess()) {
+                    val statusCode = response.status.value
+                    // Try to read a JSON { "detail": "..." } body first; fall back to raw text.
+                    val raw = response.bodyAsText()
+                    val detail = runCatching {
+                        val jsonBody = json.parseToJsonElement(raw)
+                        jsonBody.toString()
+                    }.getOrNull()
+                    val message = when {
+                        detail != null -> {
+                            runCatching {
+                                json.decodeFromString<Map<String, String>>(raw)["detail"]
+                            }.getOrNull() ?: "Server error $statusCode"
+                        }
+                        raw.isNotBlank() && !raw.trimStart().startsWith("<") -> raw
+                        else -> "Server returned $statusCode. Please try again."
+                    }
+                    throw ApiException(statusCode, message)
+                }
+            }
         }
     }
 

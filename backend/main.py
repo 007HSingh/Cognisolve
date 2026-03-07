@@ -8,7 +8,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -56,6 +56,10 @@ app.add_middleware(
 # ── Routes ─────────────────────────────────────────────────────
 app.include_router(explain_router)
 app.include_router(practice_router)
+api_router = APIRouter(prefix="/api")
+api_router.include_router(explain_router)
+api_router.include_router(practice_router)
+app.include_router(api_router)
 
 # ── Health Check ───────────────────────────────────────────────
 @app.get("/", response_model=HealthResponse, tags=["health"])
